@@ -52,6 +52,9 @@ COOKIES_FILE = _get("COOKIES_FILE")
 # check without needing cookies at all. Leave unset for yt-dlp's default.
 YTDLP_PLAYER_CLIENTS = _get("YTDLP_PLAYER_CLIENTS")
 
+# Set to 1 to log yt-dlp's full per-client warnings to the server log.
+YTDLP_VERBOSE = _get("YTDLP_VERBOSE", "0") == "1"
+
 # --- Cleanup tuning --------------------------------------------------------
 # Raw transcripts are windowed before going to Claude so each response stays
 # comfortably inside the model's output-token budget.

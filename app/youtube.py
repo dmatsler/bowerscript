@@ -98,6 +98,8 @@ def _ydl_opts(**extra) -> dict:
     'Sign in to confirm you're not a bot' error on cloud hosts.
     """
     opts = {"quiet": True, "no_warnings": True}
+    if config.YTDLP_VERBOSE:
+        opts.update({"quiet": False, "no_warnings": False, "verbose": True})
     cookie_file = _cookie_path()
     if cookie_file:
         opts["cookiefile"] = cookie_file
