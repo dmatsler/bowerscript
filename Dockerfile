@@ -12,18 +12,25 @@ COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
 
 WORKDIR /app
 
+# Build-time install is the *floor* — entrypoint.sh refreshes yt-dlp to the
+# latest nightly on every container start.
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY frontend ./frontend
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 # Persistent data (sqlite + saved .md) lives here. Mount a disk at this path
 # on your host so transcripts survive redeploys.
 ENV DATA_DIR=/data
 RUN mkdir -p /data
 
+# Set to 0 to skip the startup yt-dlp refresh (e.g. local dev, offline).
+ENV YTDLP_AUTO_UPDATE=1
+
 EXPOSE 8000
 
-# Render/Fly inject $PORT; default to 8000 locally.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Render/Fly inject $PORT; entrypoint.sh defaults to 8000 locally.
+CMD ["./entrypoint.sh"]

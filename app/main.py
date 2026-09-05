@@ -1,6 +1,7 @@
 """FastAPI application: the API and the static frontend in one process."""
 from __future__ import annotations
 
+import yt_dlp
 import hashlib
 import shutil
 from contextlib import asynccontextmanager
@@ -63,7 +64,11 @@ def index() -> FileResponse:
 # --- API ------------------------------------------------------------------
 @app.get("/api/health")
 def health() -> dict:
-    return {"ok": True, "missing_keys": config.missing_keys()}
+    return {
+        "ok": True,
+        "missing_keys": config.missing_keys(),
+        "yt_dlp": yt_dlp.version.__version__,
+    }
 
 
 @app.post("/api/resolve")
