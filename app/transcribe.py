@@ -53,11 +53,18 @@ def transcribe_chunks(
     """Transcribe an ordered list of chunks and join them into one transcript.
 
     `progress(done, total)` is called after each chunk if provided.
+
+    Each chunk is deleted as soon as it has been sent. Chunks are single-use,
+    and holding a whole video's worth of them until the job ends is what makes
+    peak temp usage scale with video length instead of staying flat.
     """
     parts: list[str] = []
     total = len(paths)
     for i, path in enumerate(paths, start=1):
-        text = transcribe_chunk(path, model=model)
+        try:
+            text = transcribe_chunk(path, model=model)
+        finally:
+            path.unlink(missing_ok=True)
         if text:
             parts.append(text)
         if progress:

@@ -4,6 +4,7 @@ from __future__ import annotations
 import yt_dlp
 import hashlib
 import shutil
+import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel
 
-from . import config, db, youtube
+from . import config, db, memlog, youtube
 from .jobs import manager
 from .youtube import VideoEntry
 
@@ -23,6 +24,13 @@ async def lifespan(app: FastAPI):
     # uploads staging area at boot is orphaned. Sweep it.
     for stale in config.UPLOAD_DIR.glob("*"):
         stale.unlink(missing_ok=True)
+    # Same reasoning for per-video workdirs: the pipeline removes its own in a
+    # finally, but an OOM kill or a hard restart never runs it, so audio from
+    # the run that died is still sitting in the system temp dir. is_dir()
+    # keeps this off the cookie copy, which shares the prefix and is a file.
+    for stale_dir in Path(tempfile.gettempdir()).glob("yt2md_*"):
+        if stale_dir.is_dir():
+            shutil.rmtree(stale_dir, ignore_errors=True)
     yield
 
 
@@ -64,10 +72,15 @@ def index() -> FileResponse:
 # --- API ------------------------------------------------------------------
 @app.get("/api/health")
 def health() -> dict:
+    temp_mb, temp_dirs = memlog.temp_mb()
     return {
         "ok": True,
         "missing_keys": config.missing_keys(),
         "yt_dlp": yt_dlp.version.__version__,
+        "rss_mb": memlog.rss_mb(),
+        "temp_mb": temp_mb,
+        "temp_dirs": temp_dirs,
+        "max_concurrent_jobs": config.MAX_CONCURRENT_JOBS,
     }
 
 

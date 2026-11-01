@@ -268,7 +268,14 @@ def download_chunks(video_url: str, workdir: Path) -> list[Path]:
             raise RuntimeError("Audio download produced no file.")
         raw_path = candidates[0]
 
-    return _segment_to_chunks(raw_path, workdir)
+    chunks = _segment_to_chunks(raw_path, workdir)
+    # The source download — plus any .part/.ytdl leftovers yt-dlp abandoned —
+    # is dead weight once chunked. Dropping it here keeps us from carrying a
+    # second full copy of the audio alongside every chunk for the rest of the
+    # job, which on a RAM-backed /tmp is paid for twice over.
+    for leftover in workdir.glob("audio.*"):
+        leftover.unlink(missing_ok=True)
+    return chunks
 
 
 def make_workdir() -> Path:

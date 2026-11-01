@@ -55,6 +55,13 @@ YTDLP_PLAYER_CLIENTS = _get("YTDLP_PLAYER_CLIENTS")
 # Set to 1 to log yt-dlp's full per-client warnings to the server log.
 YTDLP_VERBOSE = _get("YTDLP_VERBOSE", "0") == "1"
 
+# --- Job concurrency -------------------------------------------------------
+# A job runs the full pipeline (download -> ffmpeg -> Whisper -> Claude), and
+# the download/chunk stage is the memory-hungry part. Serialising whole jobs
+# keeps peak usage flat no matter how many batches get kicked off at once —
+# raise this only if the host has headroom to spare.
+MAX_CONCURRENT_JOBS = max(1, int(_get("MAX_CONCURRENT_JOBS", "1")))
+
 # --- Cleanup tuning --------------------------------------------------------
 # Raw transcripts are windowed before going to Claude so each response stays
 # comfortably inside the model's output-token budget.

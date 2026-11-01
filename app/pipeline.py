@@ -32,6 +32,11 @@ def process_video(
     if not force and db.exists(entry.video_id):
         status("skipped")
         row = db.get(entry.video_id)
+        # This returns before the try/finally below, so the one-shot upload
+        # cleanup there never runs — do it here or the file stays in the
+        # staging dir for the life of the disk.
+        if entry.local_path:
+            Path(entry.local_path).unlink(missing_ok=True)
         return {"video_id": entry.video_id, "title": entry.title, "skipped": True,
                 "created_at": row["created_at"] if row else None}
 

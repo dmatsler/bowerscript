@@ -9,12 +9,32 @@ dropping content. Then we assemble the pieces and add YAML front matter.
 from __future__ import annotations
 
 import re
+import threading
 from datetime import date
 
 from anthropic import Anthropic
 
 from . import config
 from .youtube import VideoEntry
+
+# One client — and so one httpx connection pool — for the whole process. A
+# fresh Anthropic() per video never gets closed, so a long batch leaves a pool
+# behind for every video it processed. The client is thread-safe.
+_client: Anthropic | None = None
+_client_lock = threading.Lock()
+
+
+def _get_client() -> Anthropic:
+    global _client
+    # Locked: with MAX_CONCURRENT_JOBS > 1, two threads can both see None and
+    # both build a client, which leaks the loser's pool — the exact thing this
+    # is here to avoid.
+    if _client is None:
+        with _client_lock:
+            if _client is None:
+                _client = Anthropic(api_key=config.ANTHROPIC_API_KEY)
+    return _client
+
 
 _SYSTEM_PROMPT = (
     "You are a transcript editor. You receive a raw, machine-generated "
@@ -112,7 +132,7 @@ def clean_to_markdown(
     if not config.ANTHROPIC_API_KEY:
         raise RuntimeError("ANTHROPIC_API_KEY is not set.")
 
-    client = Anthropic(api_key=config.ANTHROPIC_API_KEY)
+    client = _get_client()
     windows = _split_into_windows(raw_text, config.CLEANUP_WINDOW_WORDS)
 
     cleaned_parts: list[str] = []
