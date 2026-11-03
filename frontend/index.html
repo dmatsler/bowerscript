@@ -206,6 +206,28 @@
     white-space: pre-wrap; word-break: break-word; }
   .icon-btn { background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; padding: 4px 8px; }
 
+  /* ---- Narrow screens -------------------------------------------------
+     Flex items default to min-width:auto, which floors them at their
+     min-content width: they refuse to shrink below it. Native controls carry
+     a wide, fixed min-content width — the file input measures 285px however
+     narrow the viewport gets — so on a phone it runs past the edge of its
+     card. A percentage max-width is a definite size, so it clamps that
+     automatic minimum and the control shrinks to fit its container instead
+     of overflowing. Where the card is wider than the control the clamp never
+     binds, so desktop is untouched. */
+  input[type=file] { max-width: 100%; }
+
+  /* Phones only. Below this a row's thumbnail, title, and action buttons
+     cannot share one line, and the model <select> is wider than the card.
+     Above it those items shrink instead of wrapping — which is the desktop
+     layout — so letting them wrap is deliberately scoped here. */
+  @media (max-width: 480px) {
+    ul.list li { flex-wrap: wrap; }
+    .row-actions { min-width: 0; flex-wrap: wrap; }
+    .action-bar > div { min-width: 0; }
+    select.model-select { min-width: 0; }
+  }
+
   @media (prefers-reduced-motion: reduce) { .dot.active { animation: none; } }
 </style>
 </head>
