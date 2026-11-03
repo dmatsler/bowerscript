@@ -1,9 +1,9 @@
 # yt2md
 
-Turn a YouTube video **or playlist** into clean, readable Markdown transcripts —
-transcribed with Whisper (not YouTube's sloppy auto-captions) and tidied up by
-Claude. Runs entirely as a small web app you deploy to the cloud, so nothing
-heavy runs on your own machine.
+Turn a YouTube video, playlist, or personal video or audio upload into clean,
+readable Markdown transcripts — transcribed with Whisper (not YouTube's sloppy
+auto-captions) and tidied up by Claude. Runs entirely as a small web app you
+deploy to the cloud, so nothing heavy runs on your own machine.
 
 > Paste a playlist → see every video with thumbnails → tick the ones you want →
 > get punctuated, paragraphed, chaptered `.md` files. Already-transcribed videos
