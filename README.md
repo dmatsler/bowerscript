@@ -198,8 +198,11 @@ real values.
    `basic_auth` block of your `Caddyfile`.
 
    ```bash
-   docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
+   docker run --rm -it caddy:2-alpine caddy hash-password
    ```
+
+   It prompts for the password, so the plaintext never lands in your shell
+   history.
 7. **Bring it up**:
 
    ```bash
@@ -236,7 +239,7 @@ Useful checks:
 
 ```bash
 docker compose logs -f app          # includes the [entrypoint] and [mem] lines
-docker compose exec app curl -s localhost:8000/api/health
+docker compose exec app python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/api/health').read().decode())"
 ```
 
 ## Maintenance
@@ -320,12 +323,15 @@ current behaviour:
 - **Per-user libraries** — transcripts scoped to the account that made them
   instead of one shared library.
 - **"Ask my library" chat** — question-answering across your saved transcripts.
-- **Public demo** — a rate-limited, no-signup instance anyone can try. Until
-  then the live site stays password-protected.
+- **Demo instance** — a separate deployment with its own library and its own
+  password, to share with recruiters and hiring managers. Not an open public
+  instance: both it and the live site stay password-protected.
 
 ---
 
-Built as a one-day project: idea → architecture → deploy → three rounds of
-YouTube-hardening → UI redesign → shipped; then moved off a free tier onto a
-VPS so the library actually persists. FastAPI + vanilla JS, Groq + Claude,
-Docker Compose behind Caddy.
+The first version was built in a single day in July 2026 to solve my own
+problem. Because I kept using it, it has been refined several times since —
+including multiple rounds of YouTube-hardening and a UI redesign — and in
+November 2026 it moved off a free tier onto a self-managed VPS so the library
+persists. Still actively evolving, with more changes planned. FastAPI + vanilla
+JS, Groq + Claude, Docker Compose behind Caddy.

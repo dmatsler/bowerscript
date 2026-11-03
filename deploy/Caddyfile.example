@@ -18,8 +18,9 @@ PRIMARY_DOMAIN {
 	# Site-wide password. The app has no login of its own, so this is the
 	# only access control in front of the library.
 	#
-	# Generate the hash (never store the plaintext here):
-	#   docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
+	# Generate the hash (never store the plaintext here). The interactive
+	# form prompts for the password, keeping it out of your shell history:
+	#   docker run --rm -it caddy:2-alpine caddy hash-password
 	#
 	# `basic_auth` needs Caddy 2.8+; on older versions the directive is
 	# spelled `basicauth`.
