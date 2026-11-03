@@ -1,14 +1,15 @@
 """Memory reporting for a host with no metrics dashboard.
 
-Render's free tier gives you the Logs tab and nothing else, so the cheapest
-useful telemetry is a line per video saying how much resident memory the
-process holds and how much audio is still sitting in temp. Every line starts
-with "[mem]" so it can be filtered out of the stream.
+The VPS has no metrics dashboard, so the cheapest useful telemetry is a line
+per video saying how much resident memory the process holds and how much audio
+is still sitting in temp. Every line starts with "[mem]" so it can be filtered
+out of `docker compose logs`.
 
 No new dependency. psutil is used if it happens to be installed, otherwise
-/proc/self/status, which is what Render runs. The resource fallback is there
-so local dev on macOS prints something rather than nothing — it reports the
-high-water mark rather than the current value, and the line says so.
+/proc/self/status, which is what the Linux container has. The resource
+fallback is there so local dev on macOS prints something rather than nothing —
+it reports the high-water mark rather than the current value, and the line
+says so.
 """
 from __future__ import annotations
 
@@ -81,7 +82,7 @@ def log(event: str) -> None:
     """Emit one '[mem]' line.
 
     print() rather than logging: the project configures no logging, and
-    Render's Logs tab is just stdout — same convention as entrypoint.sh.
+    container logs are just stdout — same convention as entrypoint.sh.
     """
     value, source = _read_rss()
     rss = "n/a" if value is None else f"{value:.1f}MB"

@@ -29,7 +29,10 @@ ANTHROPIC_MODEL = _get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
 
 # --- Storage ---------------------------------------------------------------
 # Everything persistent (sqlite db + saved markdown) lives under DATA_DIR.
-# On Render/Fly, point this at a mounted disk so it survives redeploys.
+# In production this is /data, a host directory mounted into the container, so
+# the library survives restarts and rebuilds.
+# NB: the db filename predates the Bowerscript rename. Leave it alone — the
+# deployed library is this file.
 DATA_DIR = Path(_get("DATA_DIR", "./data")).resolve()
 TRANSCRIPT_DIR = DATA_DIR / "transcripts"
 UPLOAD_DIR = DATA_DIR / "uploads_tmp"   # staging area for direct audio uploads
@@ -42,14 +45,15 @@ CHUNK_SECONDS = int(_get("CHUNK_SECONDS", "600"))  # 10 minutes
 AUDIO_BITRATE = _get("AUDIO_BITRATE", "64k")
 
 # Optional path to a Netscape-format cookies.txt for yt-dlp. Needed when the
-# host's IP gets bot-blocked by YouTube (common on cloud providers). On
-# Render, add the file as a Secret File and point this at it, e.g.
+# host's IP gets bot-blocked by YouTube (common on cloud providers). In
+# production the file is mounted read-only, e.g.
 # COOKIES_FILE=/etc/secrets/cookies.txt
 COOKIES_FILE = _get("COOKIES_FILE")
 
 # Optional comma-separated list of YouTube player clients for yt-dlp to
-# impersonate (e.g. "tv,web"). Some clients bypass the datacenter-IP bot
-# check without needing cookies at all. Leave unset for yt-dlp's default.
+# impersonate (e.g. "tv"). Diagnostics only — leave this unset. yt-dlp's own
+# defaults track YouTube's changes and work better; a hand-picked list that
+# includes "web" causes "The page needs to be reloaded" failures.
 YTDLP_PLAYER_CLIENTS = _get("YTDLP_PLAYER_CLIENTS")
 
 # Set to 1 to log yt-dlp's full per-client warnings to the server log.

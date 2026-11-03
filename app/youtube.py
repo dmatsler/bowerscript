@@ -53,9 +53,9 @@ def _watch_url(video_id: str) -> str:
     return f"https://www.youtube.com/watch?v={video_id}"
 
 
-# yt-dlp writes rotated session cookies back to the cookie file, but secret
-# mounts (e.g. Render's /etc/secrets) are read-only. So we copy the file to a
-# writable temp path on first use and hand yt-dlp the copy. Rotations then
+# yt-dlp writes rotated session cookies back to the cookie file, but the
+# cookie mount (/etc/secrets/cookies.txt) is read-only. So we copy the file to
+# a writable temp path on first use and hand yt-dlp the copy. Rotations then
 # persist for the life of the process, and the original stays pristine.
 _cookie_copy: Optional[Path] = None
 

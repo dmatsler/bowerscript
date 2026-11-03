@@ -1,0 +1,60 @@
+# Example Caddyfile for Bowerscript. Caddy terminates HTTPS (certificates are
+# obtained and renewed automatically), gates the whole site behind one shared
+# password, and proxies to the app container on the internal network.
+#
+# On the server, copy this to the repo root as Caddyfile and fill in the
+# placeholders. That filename is git-ignored so your filled-in copy is never
+# committed.
+#
+# Replace: PRIMARY_DOMAIN, ALT_DOMAIN, ADMIN_EMAIL, BASIC_AUTH_USER,
+#          BASIC_AUTH_BCRYPT_HASH.
+
+{
+	# Where Let's Encrypt sends expiry warnings.
+	email ADMIN_EMAIL
+}
+
+PRIMARY_DOMAIN {
+	# Site-wide password. The app has no login of its own, so this is the
+	# only access control in front of the library.
+	#
+	# Generate the hash (never store the plaintext here):
+	#   docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
+	#
+	# `basic_auth` needs Caddy 2.8+; on older versions the directive is
+	# spelled `basicauth`.
+	basic_auth {
+		BASIC_AUTH_USER BASIC_AUTH_BCRYPT_HASH
+	}
+
+	# "app" is the Compose service name; 8000 is uvicorn inside the container.
+	reverse_proxy app:8000 {
+		# Transcription jobs are polled, not held open, so the only long
+		# request is a large audio upload.
+		transport http {
+			read_timeout 30m
+			write_timeout 30m
+		}
+	}
+
+	# Caddy streams request bodies with no size cap by default. Uncomment to
+	# put a ceiling on direct audio uploads.
+	# request_body {
+	# 	max_size 2GB
+	# }
+
+	encode zstd gzip
+
+	log {
+		output file /data/access.log {
+			roll_size 10MB
+			roll_keep 5
+		}
+	}
+}
+
+# Secondary domain: redirect everything to the primary so there's one
+# canonical URL. Add www.PRIMARY_DOMAIN to this line if you use it.
+ALT_DOMAIN {
+	redir https://PRIMARY_DOMAIN{uri} permanent
+}

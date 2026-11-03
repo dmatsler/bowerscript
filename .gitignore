@@ -6,3 +6,8 @@ data/
 .DS_Store
 .venv/
 venv/
+
+# Server-side deploy files, copied from deploy/*.example and filled in with
+# domains and secrets. Tracking either would break `git pull` on the server.
+/docker-compose.yml
+/Caddyfile

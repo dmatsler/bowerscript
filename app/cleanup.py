@@ -102,7 +102,7 @@ def _front_matter(entry: VideoEntry) -> str:
         mins, secs = divmod(int(entry.duration), 60)
         lines.append(f"duration: {mins}m{secs:02d}s")
     lines.append(f"transcribed: {date.today().isoformat()}")
-    lines.append("generated_by: yt2md (Groq Whisper + Claude)")
+    lines.append("generated_by: Bowerscript (Groq Whisper + Claude)")
     lines.append("---")
     return "\n".join(lines)
 

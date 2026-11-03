@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="yt2md",
+    title="Bowerscript",
     description="YouTube to clean Markdown transcripts",
     lifespan=lifespan,
 )
@@ -262,7 +262,7 @@ def download_batch(ids: str) -> Response:
         content=buf.read(),
         media_type="application/zip",
         headers={
-            "Content-Disposition": 'attachment; filename="yt2md-transcripts.zip"'
+            "Content-Disposition": 'attachment; filename="bowerscript-transcripts.zip"'
         },
     )
 

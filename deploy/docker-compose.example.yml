@@ -1,0 +1,70 @@
+# Example Compose file for a single-host Bowerscript deployment:
+# the app container plus Caddy terminating HTTPS in front of it.
+#
+# On the server, copy this to the repo root as docker-compose.yml and adjust
+# the two host paths. That filename is git-ignored on purpose — a tracked
+# docker-compose.yml would collide with the server's own copy and make every
+# `git pull` fail.
+#
+#   cp deploy/docker-compose.example.yml docker-compose.yml
+#   cp deploy/Caddyfile.example Caddyfile
+#   docker compose up -d --build
+#
+# The paths below assume the repo is cloned to /srv/bowerscript and the cookie
+# file lives at /etc/bowerscript/cookies.txt; adjust to taste. The
+# domain-specific and secret bits are all in the Caddyfile.
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+
+    # GROQ_API_KEY and ANTHROPIC_API_KEY live here. See .env.example for the
+    # full list of variables the app reads.
+    env_file: .env
+
+    environment:
+      # Where the read-only cookie mount lands inside the container.
+      COOKIES_FILE: /etc/secrets/cookies.txt
+      # One pipeline at a time. The download/ffmpeg stage is the memory-hungry
+      # part; raising this is how you OOM a small VPS.
+      MAX_CONCURRENT_JOBS: "1"
+
+    volumes:
+      # Persistent library: the SQLite db and the saved .md files. This mount
+      # is what makes transcripts and duplicate detection survive restarts,
+      # rebuilds, and redeploys. DATA_DIR is already /data in the image.
+      - ./data:/data
+
+      # cookies.txt from a throwaway Google account, mounted read-only and
+      # kept outside the repo. The app copies it to a writable temp path at
+      # runtime, because yt-dlp writes rotated cookies back.
+      - /etc/bowerscript/cookies.txt:/etc/secrets/cookies.txt:ro
+
+    # Reachable from Caddy on the internal network only — never published to
+    # the host, so the app is not exposed without auth and TLS in front.
+    expose:
+      - "8000"
+
+    networks: [web]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and ACME state. Keep these named volumes: losing
+      # caddy_data means re-issuing certificates and risking rate limits.
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [web]
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  web:

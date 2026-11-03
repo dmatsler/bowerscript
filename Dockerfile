@@ -22,8 +22,9 @@ COPY frontend ./frontend
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-# Persistent data (sqlite + saved .md) lives here. Mount a disk at this path
-# on your host so transcripts survive redeploys.
+# Persistent data (sqlite + saved .md) lives here. Compose mounts a host
+# directory at this path so the library survives restarts and rebuilds —
+# see deploy/docker-compose.example.yml.
 ENV DATA_DIR=/data
 RUN mkdir -p /data
 
@@ -32,5 +33,5 @@ ENV YTDLP_AUTO_UPDATE=1
 
 EXPOSE 8000
 
-# Render/Fly inject $PORT; entrypoint.sh defaults to 8000 locally.
+# entrypoint.sh binds $PORT, defaulting to 8000.
 CMD ["./entrypoint.sh"]
